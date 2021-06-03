@@ -4,6 +4,14 @@ from manim import *
 class Permutation(Scene):
 
     def create_orbit(self, points, dots, indices, color):
+        """
+        Creates an orbit with the dots given the indices and then colors the dots in the orbits using the color
+        :param points: points on where the dots are
+        :param dots: the dots that could be in the orbit
+        :param indices: which dots are in the orbit (first and last index should be the same for it to be an orbit).
+                        Draws an arrow from the dot at the last index to the dot at the next index. 
+        :param color: The color to color all the dots in the orbits
+        """
         arrows = []
         for c in range(len(indices)):
             this_index = indices[c]
