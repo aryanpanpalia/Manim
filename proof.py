@@ -20,7 +20,6 @@ class Permutation(Scene):
         self.play(*fade_out_arrows, run_time=0.5)
         self.wait()
 
-
     def construct(self):
         circle = Circle(radius=3, color=BLACK)
         self.add(circle)
