@@ -34,7 +34,7 @@ class Permutation(Scene):
             points.append(p)
             d = Dot(point=p)
             dots.append(d)
-            if c != 20:
+            if c != num_points:
                 label = Integer(number=c + 1).move_to(p * 1.1).scale(0.5)
                 self.add(d, label)
             else:
