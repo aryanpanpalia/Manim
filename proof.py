@@ -1,7 +1,9 @@
+from abc import ABC
+
 from manim import *
 
 
-class Permutation(Scene):
+class TrackingDotsAndRelatedGroups(Scene):
 
     def create_orbit(self, points, dots, indices, color):
         """
@@ -37,20 +39,72 @@ class Permutation(Scene):
         points = []
         dots = []
 
-        for c, angle in enumerate(np.linspace(0, TAU, num_points + 1)):
+        for c, angle in enumerate(np.linspace(0, TAU, num_points, endpoint=False)):
             p = circle.point_at_angle(angle)
             points.append(p)
             d = Dot(point=p)
             dots.append(d)
-            if c != num_points:
-                label = Integer(number=c + 1).move_to(p * 1.1).scale(0.5)
-                self.add(d, label)
-            else:
-                self.add(d)
+            label = Integer(number=c + 1).move_to(p * 1.1).scale(0.5)
+            self.add(d, label)
 
-        self.create_orbit(points, dots, [0, 4, 10, 17, 7, 20], RED)
+        self.create_orbit(points, dots, [0, 4, 10, 17, 7, 0], RED)
         self.create_orbit(points, dots, [1, 9, 16, 1], DARK_BLUE)
         self.create_orbit(points, dots, [2, 6, 14, 5, 19, 2], GREEN)
-        self.create_orbit(points, dots, [3, 11, 16, 18, 3], PURPLE)
+        self.create_orbit(points, dots, [3, 11, 15, 18, 3], PURPLE_C)
         self.create_orbit(points, dots, [8, 12, 13, 8], ORANGE)
-        self.create_orbit(points, dots, [15, 15], PINK)
+
+
+class CustomArrowTip(ArrowTip, Triangle, ABC):
+    def __init__(self, **kwargs):
+        Triangle.__init__(self)
+        self.scale(0.05)
+        self.set_color(WHITE)
+        self.set_fill(color=WHITE, opacity=100)
+
+
+class Permutation(Scene):
+    def permute(self, dots):
+        permutations = [
+            [0, 4, 10, 17, 7, 0],
+            [1, 9, 16, 1],
+            [2, 6, 14, 5, 19, 2],
+            [3, 11, 15, 18, 3],
+            [8, 12, 13, 8],
+
+        ]
+        transforms = []
+        fade_in_arrows = []
+
+        for permutation in permutations:
+            for index in range(len(permutation) - 1):
+                transforms.append(Transform(dots[permutation[index]], dots[permutation[index + 1]]))
+                arrow = Arrow(dots[permutation[index]].get_center(), dots[permutation[index + 1]].get_center(),
+                              stroke_width=2, tip_shape=CustomArrowTip, buff=0.15)
+                fade_in_arrows.append(FadeIn(arrow))
+
+        self.play(*fade_in_arrows)
+        self.play(*transforms, run_time=3)
+
+    def construct(self):
+        circle = Circle(radius=3, color=BLACK)
+        self.add(circle)
+
+        num_points = 20
+
+        points = []
+        dots = []
+
+        for c, angle in enumerate(np.linspace(0, TAU, num_points, endpoint=False)):
+            p = circle.point_at_angle(angle)
+            points.append(p)
+            d = Dot(point=p)
+            dots.append(d)
+            label = Integer(number=c + 1).move_to(p * 1.1).scale(0.5)
+            self.add(d, label)
+
+        self.permute(dots)
+        self.wait()
+        self.permute(dots)
+        self.wait()
+        self.permute(dots)
+        self.wait()
