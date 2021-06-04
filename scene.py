@@ -48,12 +48,3 @@ class TextScene(Scene):
         self.wait()
         self.play(Unwrite(limit), FadeOut(framebox), Unwrite(framebox_text), run_time=1)
         self.wait()
-
-
-class PointsOnCircle(Scene):
-    def construct(self):
-        circle = Circle(radius=2.0)
-        points = circle.points
-        for point in points:
-            dot = Dot(point=point)
-            self.add(dot)

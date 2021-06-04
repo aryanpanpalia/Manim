@@ -1,12 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="586e6bc1-eca7-41e9-8ad5-bbec8ba20dd2" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/media/videos/proof/1080p60/Permutation.mp4" beforeDir="false" afterPath="$PROJECT_DIR$/media/videos/proof/1080p60/Permutation.mp4" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/media/videos/proof/480p15/Permutation.mp4" beforeDir="false" afterPath="$PROJECT_DIR$/media/videos/proof/480p15/Permutation.mp4" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/proof.py" beforeDir="false" afterPath="$PROJECT_DIR$/proof.py" afterDir="false" />
-    </list>
+    <list default="true" id="586e6bc1-eca7-41e9-8ad5-bbec8ba20dd2" name="Default Changelist" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -86,7 +81,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1622762231480</updated>
-      <workItem from="1622762234622" duration="12112000" />
+      <workItem from="1622762234622" duration="12684000" />
     </task>
     <servers />
   </component>
