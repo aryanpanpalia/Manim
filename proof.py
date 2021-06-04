@@ -93,7 +93,7 @@ class Permutation(Scene):
 
         fade_in_labels = [FadeIn(label) for label in labels]
         for label, dot in zip(labels, dots):
-            label.move_to(dot.get_center()*1.1)
+            label.move_to(dot.get_center() * 1.1)
 
         self.play(*fade_in_labels)
 
