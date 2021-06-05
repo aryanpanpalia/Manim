@@ -59,7 +59,7 @@ class CustomArrowTip(ArrowTip, Triangle, ABC):
         Triangle.__init__(self)
         self.scale(0.05)
         self.set_color(WHITE)
-        self.set_fill(color=WHITE, opacity=100)
+        self.set_fill(color=WHITE, opacity=0)
 
 
 class Permutation(Scene):
