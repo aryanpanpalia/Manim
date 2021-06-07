@@ -130,3 +130,98 @@ class Permutation(Scene):
         self.wait()
         self.permute(dots, labels, permutations)
         self.wait()
+
+
+class ExplainingPermutations(Scene):
+    num_permutes = 0
+
+    def permute(self, dots, permutation: dict):
+        transforms = []
+        create_arcs = []
+        uncreate_arcs = []
+
+        for key, value in permutation.items():
+            this = dots[key]
+            other = dots[value]
+            transforms.append(Transform(this, other, path_arc=PI))
+
+            halfdist = np.linalg.norm(np.array(this.get_center()) - np.array(other.get_center())) / 2
+            arc = CurvedArrow(this.get_center(), other.get_center(), radius=halfdist, tip_shape=CustomArrowTip,
+                              stroke_opacity=0.5)
+
+            center = arc.get_arc_center()
+            arrowtip = Triangle().scale(0.05).move_to(center)
+            if this.get_x() > other.get_x():
+                arc = Arc(start_angle=PI + 0.3, angle=PI - 0.6, arc_center=center, radius=-halfdist)
+                arrowtip.shift(UP * halfdist).rotate(3 * PI / 6).set_fill(WHITE).set_color(WHITE)
+            else:
+                arc = Arc(start_angle=PI + 0.3, angle=PI - 0.6, arc_center=center, radius=halfdist)
+                arrowtip.shift(DOWN * halfdist).rotate(PI / 6).set_fill(WHITE).set_color(WHITE)
+
+            arc.add(arrowtip)
+            create_arcs.append(Create(arc))
+            uncreate_arcs.append(Uncreate(arc))
+
+        self.play(*create_arcs)
+        self.play(*transforms)
+        self.num_permutes += 1
+        self.play(*uncreate_arcs)
+
+    def construct(self):
+        dot1 = Dot(LEFT * 2)
+        dot2 = Dot(LEFT)
+        dot3 = Dot()
+        dot4 = Dot(RIGHT)
+        dot5 = Dot(RIGHT * 2)
+
+        label1 = Integer(1).scale(0.5).next_to(dot1, UP)
+        label2 = Integer(2).scale(0.5).next_to(dot2, UP)
+        label3 = Integer(3).scale(0.5).next_to(dot3, UP)
+        label4 = Integer(4).scale(0.5).next_to(dot4, UP)
+        label5 = Integer(5).scale(0.5).next_to(dot5, UP)
+
+        dots = [dot1, dot2, dot3, dot4, dot5]
+        labels = [label1, label2, label3, label4, label5]
+
+        dots_copy = [dot.copy() for dot in dots]
+        labels_copy = [label.copy() for label in labels]
+
+        group_of_dots = VGroup(*dots)
+
+        group_of_copy_dots = VGroup(*dots_copy)
+        group_of_labels_copy = VGroup(*labels_copy)
+
+        label1.add_updater(lambda l: l.next_to(dot1, UP))
+        label2.add_updater(lambda l: l.next_to(dot2, UP))
+        label3.add_updater(lambda l: l.next_to(dot3, UP))
+        label4.add_updater(lambda l: l.next_to(dot4, UP))
+        label5.add_updater(lambda l: l.next_to(dot5, UP))
+
+        counter = Integer(0).scale(0.5).move_to(RIGHT * 4 + UP * 3.5)
+        counter.add_updater(lambda i: i.set_value(self.num_permutes))
+        self.add(counter)
+
+        permutation = {
+            0: 2,
+            1: 4,
+            2: 0,
+            3: 1,
+            4: 3
+        }
+
+        self.play(*[FadeIn(dot) for dot in dots], *[Write(label) for label in labels], run_time=0.5)
+        self.add(*labels_copy, *dots_copy)
+
+        self.play(ApplyMethod(group_of_dots.shift, UP * 2),
+                  ApplyMethod(group_of_copy_dots.shift, DOWN),
+                  ApplyMethod(group_of_labels_copy.shift, DOWN),
+                  )
+
+        self.play(ApplyMethod(group_of_copy_dots.set_fill, GRAY), ApplyMethod(group_of_labels_copy.set_fill, GRAY))
+
+        self.permute(dots, permutation)
+        self.wait()
+        self.permute(dots, permutation)
+        self.wait()
+        self.permute(dots, permutation)
+        self.wait()
