@@ -114,6 +114,7 @@ dmypy.json
 .pyre/
 
 # Custom
+.idea/
 Tex/
 texts/
 partial_movie_files/
