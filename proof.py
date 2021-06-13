@@ -3,6 +3,13 @@ from abc import ABC
 from manim import *
 
 
+def approx(array1, array2):
+    for element1, element2 in zip(array1, array2):
+        if not (element1 - 0.05 < element2 < element1 + 0.05):
+            return False
+    return True
+
+
 class TrackingDotsAndRelatedGroups(Scene):
 
     def create_orbit(self, points, dots, indices, color):
@@ -225,3 +232,74 @@ class ExplainingPermutations(Scene):
         self.wait()
         self.permute(dots, permutation)
         self.wait()
+
+
+class RotatePermutation(Scene):
+
+    def rotate_permutation(self, dots, labels, dot_loc, label_loc):
+        transforms = []
+        fade_in_arrows = []
+        fade_out_arrows = []
+        for index in range(20):
+            last_dot = dots[index - 1]
+            this_dot = dots[index]
+            last_label = labels[index - 1]
+            this_label = labels[index]
+
+            transforms.append(Transform(last_dot, this_dot))
+
+            if approx(last_label.get_center(), label_loc):
+                last_label = last_label.set_value(this_label.get_value() - 1)
+
+            transforms.append(
+                Transform(last_label, this_label.copy().set_value(last_label.get_value()))
+            )
+
+            if not (approx(this_dot.get_center(), dot_loc) or approx(last_dot.get_center(), dot_loc)):
+                arrow = Arrow(
+                    last_dot.get_center(),
+                    this_dot.get_center(),
+                    stroke_width=2,
+                    tip_shape=CustomArrowTip,
+                    buff=0.15
+                )
+                fade_in_arrows.append(FadeIn(arrow))
+                fade_out_arrows.append(FadeOut(arrow))
+
+        self.play(*fade_in_arrows)
+        self.play(*transforms)
+        self.play(*fade_out_arrows)
+
+    def construct(self):
+        circle = Circle(radius=3, color=BLACK)
+        self.add(circle)
+
+        num_points = 20
+
+        points = []
+        dots = []
+        labels = []
+
+        for c, angle in enumerate(np.linspace(0, TAU, num_points, endpoint=False)):
+            p = circle.point_at_angle(angle)
+            points.append(p)
+            d = Dot(point=p)
+            dots.append(d)
+            label = Integer(number=c + 1).move_to(p * 1.15).scale(0.5)
+            labels.append(label)
+
+        for c in range(1, 7, 1):
+            labels[-c].set_value(1001 - c)
+
+        dot_loc = dots[13].get_center()
+        label_loc = labels[13].get_center()
+        dots[13].set_color(BLACK)
+        labels[13].set_color(BLACK)
+        etc = Text('...').move_to(dot_loc).rotate(-TAU / 8.5)
+
+        self.play(*[FadeIn(dot) for dot in dots], *[FadeIn(label) for label in labels], FadeIn(etc))
+
+        self.rotate_permutation(dots, labels, dot_loc, label_loc)
+        self.rotate_permutation(dots, labels, dot_loc, label_loc)
+        self.rotate_permutation(dots, labels, dot_loc, label_loc)
+        self.rotate_permutation(dots, labels, dot_loc, label_loc)
