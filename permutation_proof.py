@@ -295,7 +295,9 @@ class RotatePermutation(Scene):
         label_loc = labels[13].get_center()
         dots[13].set_color(BLACK)
         labels[13].set_color(BLACK)
-        etc = Text('...').move_to(dot_loc).rotate(-TAU / 8.5)
+
+        angle = Line(start=dots[12].get_center(), end=dots[14].get_center()).get_angle()
+        etc = Text('...').move_to(dot_loc).rotate(angle)
 
         self.play(*[FadeIn(dot) for dot in dots], *[FadeIn(label) for label in labels], FadeIn(etc))
 
