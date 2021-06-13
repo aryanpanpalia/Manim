@@ -117,3 +117,4 @@ dmypy.json
 Tex/
 texts/
 partial_movie_files/
+testing.py
