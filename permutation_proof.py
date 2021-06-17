@@ -371,15 +371,18 @@ def make_arrow_between(dot1, dot2):
     return arrow
 
 
-def make_sticky_arrow_between(dot1, dot2):
-    arrow = make_arrow_between(dot1, dot2)
-
+def arrow_add_sticky_updater(arrow, dot1, dot2):
     arrow.add_updater(
         lambda arw: arw.put_start_and_end_on(
             Line(start=dot1.get_center(), end=dot2.get_center()).scale(0.9).get_start(),
             Line(start=dot1.get_center(), end=dot2.get_center()).scale(0.9).get_end()
         )
     )
+
+
+def make_sticky_arrow_between(dot1, dot2):
+    arrow = make_arrow_between(dot1, dot2)
+    arrow_add_sticky_updater(arrow, dot1, dot2)
 
     return arrow
 
@@ -442,10 +445,88 @@ class TrackingOne(Scene):
         self.play(ApplyMethod(one.move_to, start_one), ApplyMethod(five.move_to, start_five), FadeIn(dots[7]))
 
 
+class Cycle:
+    def __init__(self, circle, dots, labels):
+        self.circle = circle
+        self.dots = [dot for dot in dots]
+        self.labels = [label for label in labels]
+
+        self.length = len(self.dots)
+
+        self.arrows = []
+
+        self.dot_group = VGroup(*self.dots)
+        self.label_group = VGroup(*self.labels)
+        self.dot_and_label_group = VGroup(*self.dots, *self.labels)
+
+    def add_label_updaters(self):
+        for dot, label in zip(self.dots, self.labels):
+            label.add_updater(
+                lambda l, dot=dot, label=label: l.move_to(
+                    (dot.get_center() - self.circle.get_center()) * 1.15 + self.circle.get_center()
+                )
+            )
+
+    def remove_label_updaters(self):
+        for label in self.labels:
+            label.clear_updaters()
+
+    def make_arrows_normal(self):
+        if len(self.arrows) > 0:
+            for arrow in self.arrows:
+                arrow.clear_updaters()
+        else:
+            self.arrows = [
+                make_arrow_between(
+                    self.dots[index], self.dots[(index + 1) % self.length]
+                ) for index in range(self.length)
+            ]
+
+    def make_arrows_sticky(self):
+        if len(self.arrows) > 0:
+            for index, arrow in enumerate(self.arrows):
+                arrow_add_sticky_updater(arrow, self.dots[index], self.dots[(index + 1) % self.length])
+        else:
+            self.arrows = [
+                make_sticky_arrow_between(
+                    self.dots[index], self.dots[(index + 1) % self.length]
+                ) for index in range(self.length)
+            ]
+
+    def change_center(self, new_center):
+        old_center = self.circle.get_center()
+        self.circle.move_to(new_center)
+        return ApplyMethod(self.dot_and_label_group.shift, new_center - old_center)
+
+    def untangle(self):
+        methods = []
+        for index, dot in enumerate(self.dots):
+            methods.append(ApplyMethod(dot.move_to, self.circle.point_at_angle(index * TAU / self.length)))
+        return methods
+
+    def permute(self):
+        transforms = []
+        fade_out_labels = [FadeOut(label) for label in self.labels]
+        fade_in_labels = [FadeIn(label) for label in self.labels]
+
+        for index in range(self.length):
+            transforms.append(
+                Transform(
+                    self.dots[index - 1], self.dots[index]
+                )
+            )
+
+        return transforms, fade_out_labels, fade_in_labels
+
+    def scale(self, scale_factor):
+        pass
+
+
 class BringingInto2Circles(ZoomedScene, MovingCameraScene):
     def permute(self, dots, labels, permutations, *cycles):
         transforms = []
         fade_out_labels = [FadeOut(label) for label in labels]
+        fade_in_labels = [FadeIn(label) for label in labels]
 
         for permutation in permutations:
             for index in range(len(permutation) - 1):
@@ -455,21 +536,22 @@ class BringingInto2Circles(ZoomedScene, MovingCameraScene):
                     )
                 )
 
-        cycle_rotations = [
-            Rotate(VGroup(*cycle[2]), angle=TAU / cycle[-1], about_point=cycle[0].get_center()) for cycle in cycles
-        ]
+        for cycle in cycles:
+            cycle_transforms, fade_out_cycle_labels, fade_in_cycle_labels = cycle.permute()
+            transforms.extend(cycle_transforms)
+            fade_out_labels.extend(fade_out_cycle_labels)
+            fade_in_labels.extend(fade_in_cycle_labels)
 
         self.play(*fade_out_labels)
-        self.play(*transforms, *cycle_rotations, run_time=3)
+        self.play(*transforms, run_time=3)
 
-        fade_in_labels = [FadeIn(label) for label in labels]
         for label, dot in zip(labels, dots):
             label.move_to(dot.get_center() * 1.1)
 
         self.play(*fade_in_labels)
 
     def construct(self):
-        circle = Circle(radius=3, color=BLACK)
+        circle = Circle(radius=3, color=RED)
 
         num_points = 20
 
@@ -508,73 +590,38 @@ class BringingInto2Circles(ZoomedScene, MovingCameraScene):
             arrows.append(make_arrow_between(dots[cycle2order[index - 1]], dots[cycle2order[index]]))
 
         for arrow in arrows:
-            self.play(Create(arrow))
+            self.play(Create(arrow), run_time=0.5)
 
         self.wait()
 
         self.play(self.camera.frame.animate.scale(2))
         self.play(self.camera.frame.animate.shift(DOWN * 4))
 
-        cycle1dots = [dots[0].copy(), dots[4].copy(), dots[10].copy(), dots[16].copy(), dots[7].copy()]
-        cycle1labels = [labels[0].copy(), labels[4].copy(), labels[10].copy(), labels[16].copy(), labels[7].copy()]
-        cycle1circle = Circle(radius=3, color=RED).shift(6 * LEFT + 8 * DOWN)
-        cycle1arrows = [
-            make_sticky_arrow_between(cycle1dots[0], cycle1dots[1]),
-            make_sticky_arrow_between(cycle1dots[1], cycle1dots[2]),
-            make_sticky_arrow_between(cycle1dots[2], cycle1dots[3]),
-            make_sticky_arrow_between(cycle1dots[3], cycle1dots[4]),
-            make_sticky_arrow_between(cycle1dots[4], cycle1dots[0]),
-        ]
-        cycle1group = VGroup(
-            *cycle1dots,
-            *cycle1labels
-        )
-        self.add(*cycle1arrows)
-
-        cycle2dots = [dots[1].copy(), dots[18].copy(), dots[9].copy()]
-        cycle2labels = [labels[1].copy(), labels[18].copy(), labels[9].copy()]
-        cycle2circle = Circle(radius=3, color=RED).shift(6 * RIGHT + 8 * DOWN)
-        cycle2arrows = [
-            make_sticky_arrow_between(cycle2dots[0], cycle2dots[1]),
-            make_sticky_arrow_between(cycle2dots[1], cycle2dots[2]),
-            make_sticky_arrow_between(cycle2dots[2], cycle2dots[0]),
-        ]
-        cycle2group = VGroup(
-            *cycle2dots,
-            *cycle2labels
-        )
-        self.add(*cycle2arrows)
-
-        self.play(
-            ApplyMethod(cycle1group.shift, 6 * LEFT + 8 * DOWN),
-            ApplyMethod(cycle2group.shift, 6 * RIGHT + 8 * DOWN)
+        cycle1 = Cycle(
+            circle=circle.copy(),
+            dots=[dots[index].copy() for index in [0, 4, 10, 16, 7]],
+            labels=[labels[index].copy() for index in [0, 4, 10, 16, 7]]
         )
 
-        for cycle1dot, cycle1label in zip(cycle1dots, cycle1labels):
-            cycle1label.add_updater(
-                lambda l, cycle1dot=cycle1dot, cycle1label=cycle1label: l.move_to(
-                    (cycle1dot.get_center() - cycle1circle.get_center()) * 1.15 + cycle1circle.get_center()
-                )
-            )
+        cycle2 = Cycle(
+            circle=circle.copy(),
+            dots=[dots[index].copy() for index in [1, 18, 9]],
+            labels=[labels[index].copy() for index in [1, 18, 9]]
+        )
 
-        for cycle2dot, cycle2label in zip(cycle2dots, cycle2labels):
-            cycle2label.add_updater(
-                lambda l, cycle2dot=cycle2dot, cycle2label=cycle2label: l.move_to(
-                    (cycle2dot.get_center() - cycle2circle.get_center()) * 1.15 + cycle2circle.get_center()
-                )
-            )
+        cycle1.make_arrows_sticky()
+        cycle2.make_arrows_sticky()
+
+        self.add(*cycle1.dots, *cycle1.labels, *cycle1.arrows)
+        self.add(*cycle2.dots, *cycle2.labels, *cycle2.arrows)
+
+        self.play(cycle1.change_center(6 * LEFT + 8 * DOWN), cycle2.change_center(6 * RIGHT + 8 * DOWN))
+
+        cycle1.add_label_updaters()
+        cycle2.add_label_updaters()
 
         # untangles the dots and arrows
-        self.play(
-            ApplyMethod(cycle1dots[0].move_to, cycle1circle.point_at_angle(0 * TAU / 5)),
-            ApplyMethod(cycle1dots[1].move_to, cycle1circle.point_at_angle(1 * TAU / 5)),
-            ApplyMethod(cycle1dots[2].move_to, cycle1circle.point_at_angle(2 * TAU / 5)),
-            ApplyMethod(cycle1dots[3].move_to, cycle1circle.point_at_angle(3 * TAU / 5)),
-            ApplyMethod(cycle1dots[4].move_to, cycle1circle.point_at_angle(4 * TAU / 5)),
-            ApplyMethod(cycle2dots[0].move_to, cycle2circle.point_at_angle(0 * TAU / 3)),
-            ApplyMethod(cycle2dots[1].move_to, cycle2circle.point_at_angle(1 * TAU / 3)),
-            ApplyMethod(cycle2dots[2].move_to, cycle2circle.point_at_angle(2 * TAU / 3))
-        )
+        self.play(*cycle1.untangle(), *cycle2.untangle())
 
         permutations = [
             [0, 4, 10, 16, 7, 0],
@@ -584,9 +631,11 @@ class BringingInto2Circles(ZoomedScene, MovingCameraScene):
             [8, 12, 8],
         ]
 
-        cycle1 = [cycle1circle, cycle1group, cycle1dots, cycle1labels, cycle1arrows, len(cycle1dots)]
-        cycle2 = [cycle2circle, cycle2group, cycle2dots, cycle2labels, cycle2arrows, len(cycle2dots)]
+        cycle1.make_arrows_normal()
+        cycle2.make_arrows_normal()
 
         self.permute(dots, labels, permutations, cycle1, cycle2)
         self.permute(dots, labels, permutations, cycle1, cycle2)
+
+        cycle1.make_arrows_sticky()
         self.permute(dots, labels, permutations, cycle1, cycle2)
