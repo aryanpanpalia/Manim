@@ -458,6 +458,7 @@ class Cycle:
         self.dot_group = VGroup(*self.dots)
         self.label_group = VGroup(*self.labels)
         self.dot_and_label_group = VGroup(*self.dots, *self.labels)
+        self.BADDONTKEEP = VGroup(self.circle)
 
     def add_label_updaters(self):
         for dot, label in zip(self.dots, self.labels):
@@ -639,3 +640,114 @@ class BringingInto2Circles(ZoomedScene, MovingCameraScene):
 
         cycle1.make_arrows_sticky()
         self.permute(dots, labels, permutations, cycle1, cycle2)
+
+
+class BreakingIntoCycles(ZoomedScene, MovingCameraScene):
+    def permute(self, *cycles):
+        transforms = []
+        fade_out_labels = []
+        fade_in_labels = []
+        for cycle in cycles:
+            cycle_transforms, fade_out_cycle_labels, fade_in_cycle_labels = cycle.permute()
+            transforms.extend(cycle_transforms)
+            fade_out_labels.extend(fade_out_cycle_labels)
+            fade_in_labels.extend(fade_in_cycle_labels)
+
+        self.play(*fade_out_labels)
+        self.play(*transforms, run_time=2)
+        self.play(*fade_in_labels)
+
+    def construct(self):
+        circle = Circle(radius=3, color=RED)
+
+        num_points = 20
+
+        dots = []
+        labels = []
+
+        for c, angle in enumerate(np.linspace(0, TAU, num_points, endpoint=False)):
+            p = circle.point_at_angle(angle)
+            d = Dot(point=p)
+            dots.append(d)
+            label = Integer(number=c + 1).move_to(p * 1.15).scale(0.5)
+            labels.append(label)
+
+        for c in range(1, 7, 1):
+            labels[-c].set_value(1001 - c)
+
+        # Hides the 14th dot and puts a '...' in its place
+        dot_loc = dots[13].get_center()
+        dots[13].set_color(BLACK)
+        labels[13].set_color(BLACK)
+
+        angle = Line(start=dots[12].get_center(), end=dots[14].get_center()).get_angle()
+        etc = Text('...').move_to(dot_loc).rotate(angle)
+
+        self.play(*[FadeIn(dot) for dot in dots], *[FadeIn(label) for label in labels], FadeIn(etc))
+        self.wait()
+
+        cycle1order = [0, 4, 10, 16, 7]
+        cycle2order = [3, 1, 8, 19]
+        cyclemorder = [14, 5, 12, 11, 15, 18, 6, 9]
+
+        cycle1 = Cycle(
+            circle=circle.copy(),
+            dots=[dots[index] for index in cycle1order],
+            labels=[labels[index] for index in cycle1order]
+        )
+        cycle2 = Cycle(
+            circle=circle.copy(),
+            dots=[dots[index] for index in cycle2order],
+            labels=[labels[index] for index in cycle2order]
+        )
+        cyclem = Cycle(
+            circle=circle.copy(),
+            dots=[dots[index] for index in cyclemorder],
+            labels=[labels[index] for index in cyclemorder]
+        )
+
+        cycle1.make_arrows_sticky()
+        cycle2.make_arrows_sticky()
+        cyclem.make_arrows_sticky()
+
+        self.play(self.camera.frame.animate.scale(2))
+
+        arrows = []
+        arrows.extend(cycle1.arrows)
+        arrows.extend(cycle2.arrows)
+        arrows.extend(cyclem.arrows)
+
+        self.add(*cycle1.dots, *cycle1.labels)
+        self.add(*cycle2.dots, *cycle2.labels)
+        self.add(*cyclem.dots, *cyclem.labels)
+
+        self.play(*[FadeIn(arrow) for arrow in arrows])
+
+        mystical_dot = Dot(10/3 * RIGHT).set_color(BLACK)
+        mystical_etc = Text('...').move_to(10/3 * RIGHT)
+
+        self.play(
+            cycle1.change_center(10 * LEFT),
+            cycle2.change_center(7/3 * LEFT),
+            cyclem.change_center(10 * RIGHT),
+            Transform(dots[2], mystical_dot),
+            Transform(dots[17], mystical_dot),
+            Transform(labels[2], mystical_dot),
+            Transform(labels[17], mystical_dot),
+            Transform(etc, mystical_etc)
+        )
+        self.wait()
+
+        cycle1.add_label_updaters()
+        cycle2.add_label_updaters()
+        cyclem.add_label_updaters()
+
+        self.play(*cycle1.untangle(), *cycle2.untangle(), *cyclem.untangle())
+
+        cycle1.make_arrows_normal()
+        cycle2.make_arrows_normal()
+        cyclem.make_arrows_normal()
+
+        self.permute(cycle1, cycle2, cyclem)
+        self.permute(cycle1, cycle2, cyclem)
+        self.permute(cycle1, cycle2, cyclem)
