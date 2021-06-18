@@ -458,7 +458,6 @@ class Cycle:
         self.dot_group = VGroup(*self.dots)
         self.label_group = VGroup(*self.labels)
         self.dot_and_label_group = VGroup(*self.dots, *self.labels)
-        self.BADDONTKEEP = VGroup(self.circle)
 
     def add_label_updaters(self):
         for dot, label in zip(self.dots, self.labels):
@@ -505,19 +504,17 @@ class Cycle:
             methods.append(ApplyMethod(dot.move_to, self.circle.point_at_angle(index * TAU / self.length)))
         return methods
 
-    def permute(self):
-        transforms = []
-        fade_out_labels = [FadeOut(label) for label in self.labels]
-        fade_in_labels = [FadeIn(label) for label in self.labels]
+    def show_arrows(self, run_time=1, lag_ratio=0):
+        return [FadeIn(arrow, run_time=run_time, lag_ratio=lag_ratio) for arrow in self.arrows]
 
-        for index in range(self.length):
-            transforms.append(
-                Transform(
-                    self.dots[index - 1], self.dots[index]
-                )
-            )
+    def hide_arrows(self, run_time=1, lag_ratio=0):
+        return [FadeOut(arrow, run_time=run_time, lag_ratio=lag_ratio) for arrow in self.arrows]
 
-        return transforms, fade_out_labels, fade_in_labels
+    def show_labels(self, run_time=1, lag_ratio=0):
+        return [FadeIn(label, run_time=run_time, lag_ratio=lag_ratio) for label in self.labels]
+
+    def hide_labels(self, run_time=1, lag_ratio=0):
+        return [FadeOut(label, run_time=run_time, lag_ratio=lag_ratio) for label in self.labels]
 
     def scale(self, scale_factor):
         pass
@@ -528,28 +525,29 @@ class BringingInto2Circles(ZoomedScene, MovingCameraScene):
         transforms = []
         fade_out_labels = [FadeOut(label) for label in labels]
         fade_in_labels = [FadeIn(label) for label in labels]
+        fade_in_arrows = []
+        fade_out_arrows = []
 
         for permutation in permutations:
             for index in range(len(permutation) - 1):
-                transforms.append(
-                    Transform(
-                        dots[permutation[index]], dots[permutation[index + 1]]
-                    )
-                )
+                transforms.append(Transform(dots[permutation[index]], dots[permutation[index + 1]]))
 
         for cycle in cycles:
-            cycle_transforms, fade_out_cycle_labels, fade_in_cycle_labels = cycle.permute()
-            transforms.extend(cycle_transforms)
-            fade_out_labels.extend(fade_out_cycle_labels)
-            fade_in_labels.extend(fade_in_cycle_labels)
+            # fade_out_labels.extend(cycle.hide_labels())
+            # fade_in_labels.extend(cycle.show_labels())
+            fade_out_arrows.extend(cycle.hide_arrows())
+            fade_in_arrows.extend(cycle.show_arrows())
 
-        self.play(*fade_out_labels)
+            for index in range(cycle.length):
+                transforms.append(Transform(cycle.dots[index - 1], cycle.dots[index]))
+
+        self.play(*fade_out_labels, *fade_in_arrows)
         self.play(*transforms, run_time=3)
 
         for label, dot in zip(labels, dots):
             label.move_to(dot.get_center() * 1.1)
 
-        self.play(*fade_in_labels)
+        self.play(*fade_in_labels, *fade_out_arrows)
 
     def construct(self):
         circle = Circle(radius=3, color=RED)
@@ -635,6 +633,9 @@ class BringingInto2Circles(ZoomedScene, MovingCameraScene):
         cycle1.make_arrows_normal()
         cycle2.make_arrows_normal()
 
+        self.play(*cycle1.hide_arrows(), *cycle2.hide_arrows())
+        self.wait()
+
         self.permute(dots, labels, permutations, cycle1, cycle2)
         self.permute(dots, labels, permutations, cycle1, cycle2)
 
@@ -643,19 +644,28 @@ class BringingInto2Circles(ZoomedScene, MovingCameraScene):
 
 
 class BreakingIntoCycles(ZoomedScene, MovingCameraScene):
+    num_permutes = 0
+
     def permute(self, *cycles):
         transforms = []
         fade_out_labels = []
         fade_in_labels = []
+        fade_in_arrows = []
+        fade_out_arrows = []
         for cycle in cycles:
-            cycle_transforms, fade_out_cycle_labels, fade_in_cycle_labels = cycle.permute()
-            transforms.extend(cycle_transforms)
-            fade_out_labels.extend(fade_out_cycle_labels)
-            fade_in_labels.extend(fade_in_cycle_labels)
+            fade_out_labels.extend(cycle.hide_labels())
+            fade_in_labels.extend(cycle.show_labels())
+            fade_in_arrows.extend(cycle.show_arrows())
+            fade_out_arrows.extend(cycle.hide_arrows(run_time=2.5))
 
-        self.play(*fade_out_labels)
-        self.play(*transforms, run_time=2)
-        self.play(*fade_in_labels)
+            for index in range(cycle.length):
+                transforms.append(Transform(cycle.dots[index - 1], cycle.dots[index], run_time=2))
+
+        if self.num_permutes != 0:
+            self.play(*fade_in_arrows)
+
+        self.play(*transforms, *fade_out_arrows)
+        self.num_permutes += 1
 
     def construct(self):
         circle = Circle(radius=3, color=RED)
@@ -712,23 +722,18 @@ class BreakingIntoCycles(ZoomedScene, MovingCameraScene):
 
         self.play(self.camera.frame.animate.scale(2))
 
-        arrows = []
-        arrows.extend(cycle1.arrows)
-        arrows.extend(cycle2.arrows)
-        arrows.extend(cyclem.arrows)
-
         self.add(*cycle1.dots, *cycle1.labels)
         self.add(*cycle2.dots, *cycle2.labels)
         self.add(*cyclem.dots, *cyclem.labels)
 
-        self.play(*[FadeIn(arrow) for arrow in arrows])
+        self.play(*cycle1.show_arrows(), *cycle2.show_arrows(), *cyclem.show_arrows())
 
-        mystical_dot = Dot(10/3 * RIGHT).set_color(BLACK)
-        mystical_etc = Text('...').move_to(10/3 * RIGHT)
+        mystical_dot = Dot(10 / 3 * RIGHT).set_color(BLACK)
+        mystical_etc = Text('...').move_to(10 / 3 * RIGHT)
 
         self.play(
             cycle1.change_center(10 * LEFT),
-            cycle2.change_center(7/3 * LEFT),
+            cycle2.change_center(7 / 3 * LEFT),
             cyclem.change_center(10 * RIGHT),
             Transform(dots[2], mystical_dot),
             Transform(dots[17], mystical_dot),
@@ -748,6 +753,11 @@ class BreakingIntoCycles(ZoomedScene, MovingCameraScene):
         cycle2.make_arrows_normal()
         cyclem.make_arrows_normal()
 
+        counter = Integer(0).scale(0.5).move_to(RIGHT * 13 + UP * 7)
+        counter.add_updater(lambda i: i.set_value(self.num_permutes))
+        self.add(counter)
+
         self.permute(cycle1, cycle2, cyclem)
         self.permute(cycle1, cycle2, cyclem)
         self.permute(cycle1, cycle2, cyclem)
+        self.wait()
