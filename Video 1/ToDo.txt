@@ -1,0 +1,2 @@
+0. Add new version of BringingInto2Circles into the video
+1. Add counters while doing permutations
