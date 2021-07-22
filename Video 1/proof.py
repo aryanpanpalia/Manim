@@ -744,8 +744,10 @@ class BringingInto2Circles(ZoomedScene, MovingCameraScene):
 
 		self.add(*cycle1.dots, *cycle1.labels, *cycle1.arrows)
 		self.add(*cycle2.dots, *cycle2.labels, *cycle2.arrows)
-		self.play(cycle1.change_center(6 * LEFT + 8 * DOWN), cycle2.change_center(6 * RIGHT + 8 * DOWN),
-		          FadeIn(self.counter))
+		self.play(
+			cycle1.change_center(6 * LEFT + 8 * DOWN), cycle2.change_center(6 * RIGHT + 8 * DOWN),
+			FadeIn(self.counter)
+		)
 
 		cycle1.add_label_updaters()
 		cycle2.add_label_updaters()
@@ -941,23 +943,98 @@ class BreakingCircleIntoCycles(ZoomedScene, MovingCameraScene):
 		)
 
 
-class FadingInEquations(Scene):
+class Solving(Scene):
 	def construct(self):
 		equations = MathTex(
-			r"\text{lcm}(c_1, c_2, ..., c_m) &=",
-			r"1000",
+			r"\text{lcm}(", r"c_1", r",", r"c_2", r",", r"\dots", r",", r"c_m", r") &= 1000",
 			r"\color{black} = 2^3 \cdot 5^3",
-			r"\\c_1 + c_2 + ... + c_m &= n"
+			r"\\c_1 + c_2 + \dots + c_m &= n"
 		)
 		equations.set_color_by_tex(r'\color{black}', BLACK)
 		self.play(FadeIn(equations))
-		self.wait(9)
+		self.wait()
 		self.play(equations.animate.set_color_by_tex(r'\color{black}', WHITE))
-		self.wait(3)
+		self.wait()
 
-		ci = MathTex(r"c_i = 2^{a_i} \cdot 5^{b_i}", r"\color{black}, 0 \leq a_i, b_i \leq 3").shift(DOWN)
-		ci.set_color_by_tex(r'\color{black}', BLACK)
-		self.play(FadeIn(ci))
-		self.wait(2)
-		self.play(ci.animate.set_color_by_tex(r'\color{black}', WHITE))
-		self.wait(5)
+		vertical_ci = MathTex(
+			'c_1', '&=', '2', '^{a_1}', '5', r'^{b_1}\\',
+			'c_2', '&=', '2', '^{a_2}', '5', r'^{b_2}\\',
+			r'\vdots \\',
+			'c_m', '&=', '2', '^{a_m}', '5', r'^{b_m}',
+		).shift(UP)
+		vertical_ci[12].set_x(vertical_ci[0].get_x())
+
+		lcm_expression = MathTex(r'\text{lcm}(c_1, c_2, \dots, c_m)', r'=', r'2^3 \cdot 5^3')
+		lcm_expression.shift((vertical_ci[14].get_x() - lcm_expression[1].get_x()) * RIGHT)
+		lcm_expression.set_y(vertical_ci[13].get_y() - (vertical_ci[0].get_y() - vertical_ci[6].get_y()))
+
+		self.play(
+			ApplyMethod(equations[1].move_to, vertical_ci[0].get_center()),
+			ApplyMethod(equations[3].move_to, vertical_ci[6].get_center()),
+			ApplyMethod(equations[7].move_to, vertical_ci[13].get_center()),
+			equations[5].animate.move_to(vertical_ci[12].get_center()).rotate(PI / 2),
+			*[FadeOut(equations[index]) for index in [0, 2, 4, 6, 8, 9, 10]]
+		)
+
+		self.play(
+			FadeIn(vertical_ci),
+			FadeIn(lcm_expression),
+			*[FadeOut(equations[index]) for index in [1, 3, 5, 7]]
+		)
+
+		self.play(vertical_ci.animate.set_color_by_tex('^{a', RED))
+		self.wait()
+		self.play(vertical_ci.animate.set_color_by_tex('^{a', WHITE))
+		self.wait()
+
+		with_cj = MathTex(
+			'c_1', '&=', '2', '^{a_1}', '5', r'^{b_1}\\',
+			'c_2', '&=', '2', '^{a_2}', '5', r'^{b_2}\\',
+			r'\vdots \\',
+			'c_j', '&=', '2', '^{a_j}', '5', r'^{b_j}\\',
+			r'\vdots\\',
+			'c_m', '&=', '2', '^{a_m}', '5', '^{b_m}',
+		).shift(UP)
+
+		with_cj_intermediate = MathTex(
+			'c_1', '&=', '2', '^{a_1}', '5', r'^{b_1}\\',
+			'c_2', '&=', '2', '^{a_2}', '5', r'^{b_2}\\',
+			r'\vdots \\',
+			'c_j', '&=', '2', '^3', '5', r'^{b_j}\\',
+			r'\vdots\\',
+			'c_m', '&=', '2', '^{a_m}', '5', '^{b_m}',
+		).shift(UP)
+
+		with_cj_filled = MathTex(
+			'c_1', '&=', '2', '^{a_1}', '5', r'^{b_1}\\',
+			'c_2', '&=', '2', '^{a_2}', '5', r'^{b_2}\\',
+			r'\vdots \\',
+			'c_j', '&=', '2', '^3', '5', r'^3\\',
+			r'\vdots\\',
+			'c_m', '&=', '2', '^{a_m}', '5', '^{b_m}',
+		).shift(UP)
+
+		with_cj[12].set_x(with_cj[0].get_x())
+		with_cj[19].set_x(with_cj[0].get_x())
+
+		dots_copy = vertical_ci[12].copy()
+		self.add(dots_copy)
+
+		self.play(
+			*[ApplyMethod(vertical_ci[index].move_to, with_cj[index].get_center()) for index in range(13)],
+			*[ApplyMethod(vertical_ci[index].move_to, with_cj[index + 7].get_center()) for index in range(13, 19)],
+			ApplyMethod(lcm_expression.set_y, with_cj[20].get_y() + (with_cj[6].get_y() - with_cj[0].get_y())),
+			ApplyMethod(dots_copy.move_to, with_cj[19].get_center())
+		)
+
+		self.play(FadeIn(with_cj), FadeOut(vertical_ci))
+		self.wait()
+
+		self.play(
+			Transform(with_cj[16], MathTex(r'^3').move_to(with_cj_intermediate[16].get_center())),
+			ApplyMethod(with_cj[17].move_to, with_cj_intermediate[17].get_center()),
+			ApplyMethod(with_cj[18].move_to, with_cj_intermediate[18].get_center()),
+		)
+		self.wait()
+		self.play(Transform(with_cj[18], MathTex(r'^3\\').move_to(with_cj_filled[18].get_center())))
+		self.wait()
