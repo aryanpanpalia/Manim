@@ -817,14 +817,7 @@ class BringingInto2Circles(ZoomedScene, MovingCameraScene):
 		self.permute(dots, labels, permutations, cycle1, cycle2)
 
 
-class TheTwoEquationsToSolve(Scene):
-	def construct(self):
-		eq1 = MathTex(r'\text{lcm}(c_1, c_2, ..., c_m) = 1000').shift(UP)
-		eq2 = MathTex(r'c_1 + c_2 + ... + c_m = n').shift(DOWN)
-		self.play(Write(eq1), Write(eq2))
-
-
-class LogoNew(Scene):
+class Logo(Scene):
 	def construct(self):
 		num_integrals = 5
 

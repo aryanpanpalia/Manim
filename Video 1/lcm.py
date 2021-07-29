@@ -254,11 +254,14 @@ class LCMExplanation(Scene):
 		)
 		lcm_expression_final.set_color_by_tex(r'\color{red}', RED)
 
-		expression = MathTex(r"455 \text{ } 500 \text{ } 340 \text{ } 117")
+		# expression = MathTex(r"455 \text{ } 500 \text{ } 340 \text{ } 117")
+		expression = MathTex(
+			r'\text{lcm}(', '455', ',', '500', ',', '340', ',', '117', ')'
+		)
 
-		self.play(FadeIn(expression))
+		self.play(*[FadeIn(expression[index]) for index in [1, 3, 5, 7]])
 		self.wait(1.5)
-		self.play(Transform(expression, lcm_expression))
+		self.play(*[FadeIn(expression[index]) for index in [0, 2, 4, 6, 8]])
 
 		self.wait(4)
 		self.add(*input_copies)
@@ -266,8 +269,8 @@ class LCMExplanation(Scene):
 		self.wait()
 		self.play(FadeIn(factored_inputs))
 		self.remove(*input_copies)
-		self.play(*alt_moves_to_final_locations_1)
 		self.wait(6.5)
+		self.play(*alt_moves_to_final_locations_1)
 		self.play(FadeIn(factored_exp_1))
 		self.remove(factored_inputs)
 		self.wait(4)

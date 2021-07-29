@@ -943,7 +943,7 @@ class BreakingCircleIntoCycles(ZoomedScene, MovingCameraScene):
 		)
 
 
-class Solving(Scene):
+class SolvingV1(Scene):
 	def construct(self):
 		equations = MathTex(
 			r"\text{lcm}(", r"c_1", r",", r"c_2", r",", r"\dots", r",", r"c_m", r") &= 1000",
@@ -1037,4 +1037,337 @@ class Solving(Scene):
 		)
 		self.wait()
 		self.play(Transform(with_cj[18], MathTex(r'^3\\').move_to(with_cj_filled[18].get_center())))
+		self.wait()
+
+
+class SolvingV2(Scene):
+	def construct(self):
+		self.wait(3.5)
+
+		equations = MathTex(
+			r"\text{lcm}(",
+			r"c_1, c_2, c_3, c_4, \dots, c_m",
+			")&=",
+			"1000",
+			r"\\",
+			r"c_1 + c_2 + c_3 + c_4 + \dots + c_m",
+			"&= n"
+		)
+
+		self.play(FadeIn(equations))
+
+		step = MathTex(
+			r"\text{lcm}(",
+			r"c_1, c_2, c_3, c_4, \dots, c_m",
+			")&=",
+			r"2^3 \cdot 5^3",
+			r"\\",
+			r"c_1 + c_2 + c_3 + c_4 + \dots + c_m",
+			"&= n"
+		)
+
+		self.play(
+			Transform(
+				equations[3],
+				MathTex(r"2^3 \cdot 5^3").set_x(step[3].get_x() - step[2].get_x() + equations[2].get_x()).set_y(step[3].get_y()),
+			)
+		)
+
+		step = MathTex(
+			r"\text{lcm}(",
+			r"1000",
+			")&=",
+			r"2^3 \cdot 5^3",
+			r"\\",
+			r"1000",
+			"&= n"
+		)
+		self.wait(11.5)
+		self.play(
+			*[ApplyMethod(equations[index].move_to, step[index]) for index in [0, 2, 3, 4, 6]],
+			Transform(equations[1], MathTex(r"1000").move_to(step[1])),
+			Transform(equations[5], MathTex(r"1000").move_to(step[5]))
+		)
+
+		step = MathTex(
+			r"\text{lcm}(",
+			r"2^3, 5^3",
+			")&=",
+			r"2^3 \cdot 5^3",
+			r"\\",
+			r"2^3 + 5^3",
+			"&= n"
+		)
+		self.wait(7)
+		self.play(
+			*[ApplyMethod(equations[index].move_to, step[index]) for index in [0, 2, 3, 4, 6]],
+			Transform(equations[1], MathTex(r"2^3, 5^3").move_to(step[1])),
+			Transform(equations[5], MathTex(r"2^3 + 5^3").move_to(step[5]))
+		)
+
+		step = MathTex(
+			r"\text{lcm}(",
+			r"2^3, 5^3",
+			")&=",
+			r"2^3 \cdot 5^3",
+			r"\\",
+			r"133",
+			"&= n"
+		)
+
+		self.play(
+			*[ApplyMethod(equations[index].move_to, step[index]) for index in [0, 1, 2, 3, 4, 6]],
+			Transform(equations[5], MathTex(r"133").move_to(step[5]))
+		)
+		self.wait(14)
+
+		step = MathTex(
+			r"\text{lcm}(",
+			r"c_1, c_2, c_3, c_4, \dots, c_m",
+			")&=",
+			r"2^3 \cdot 5^3",
+			r"\\",
+			r"c_1 + c_2 + c_3 + c_4 + \dots + c_m",
+			"&= n"
+		)
+		self.play(
+			*[ApplyMethod(equations[index].move_to, step[index]) for index in [0, 2, 3, 4, 6]],
+			Transform(equations[1], MathTex(r"c_1, c_2, c_3, c_4, \dots, c_m").move_to(step[1])),
+			Transform(equations[5], MathTex(r"c_1 + c_2 + c_3 + c_4 + \dots + c_m").move_to(step[5]))
+		)
+		self.wait(9)
+
+		equationsPart2 = MathTex(
+			r"\text{lcm}(",
+			r"c_1", r",", r"c_2", r",", r"c_3", ",", "c_4", ",", r"\dots", r",", r"c_m",
+			r") &= 2^3 \cdot 5^3",
+			r"\\c_1 + c_2 + c_3 + c_4 + \dots + c_m &= n"
+		)
+
+		self.add(equationsPart2)
+		self.remove(equations)
+
+		vertical_ci = MathTex(
+			'c_1', '&=', '2', '^{a_1}', '5', r'^{b_1}', r'\geq 5^{b_1}\\',
+			'c_2', '&=', '2', '^{a_2}', '5', r'^{b_2}', r'\geq 2^{a_2} + 5^{b_2}\\',
+			'c_3', '&=', '2', '^{a_3}', '5', r'^{b_3}', r'\geq 2^{a_3}\\',
+			'c_4', '&=', '2', '^{a_4}', '5', r'^{b_4}', r'\geq 5^{b_4}\\',
+			r'\vdots \\',
+			'c_m', '&=', '2', '^{a_m}', '5', r'^{b_m}', r'\geq 2^{a_m} + 5^{b_m}\\',
+		).shift(UP + RIGHT)
+
+		step = MathTex(
+			'c_1', '&=', '2', '^{a_m}', '5', r'^{b_m}', r'\geq 5^{b_m}\\',
+			'c_2', '&=', '2', '^{a_m}', '5', r'^{b_m}', r'\geq 2^{a_m} + 5^{b_m}\\',
+			'c_3', '&=', '2', '^{a_m}', '5', r'^{b_m}', r'\geq 2^{a_m}\\',
+			'c_4', '&=', '2', '^{a_m}', '5', r'^{b_m}', r'\geq 5^{b_m}\\',
+			r'\vdots \\',
+			'c_m', '&=', '2', '^{a_m}', '5', r'^{b_m}', r'\geq 2^{a_m} + 5^{b_m}\\',
+		).shift(UP + RIGHT)
+
+		vertical_ci[6].set_x(step[6].get_x())
+		vertical_ci[13].set_x(step[13].get_x())
+		vertical_ci[20].set_x(step[20].get_x())
+		vertical_ci[27].set_x(step[27].get_x())
+		vertical_ci[35].set_x(step[35].get_x())
+		vertical_ci[28].set_x(vertical_ci[0].get_x())
+
+		lcm_expression = MathTex(r'\text{lcm}(c_1, c_2, c_3, c_4, \dots, c_m)', r'=', r'2^3 \cdot 5^3')
+		lcm_expression.shift((vertical_ci[30].get_x() - lcm_expression[1].get_x()) * RIGHT)
+		lcm_expression.set_y(vertical_ci[29].get_y() - (vertical_ci[0].get_y() - vertical_ci[7].get_y()))
+
+		self.play(
+			ApplyMethod(equationsPart2[1].move_to, vertical_ci[0].get_center()),
+			ApplyMethod(equationsPart2[3].move_to, vertical_ci[7].get_center()),
+			ApplyMethod(equationsPart2[5].move_to, vertical_ci[14].get_center()),
+			ApplyMethod(equationsPart2[7].move_to, vertical_ci[21].get_center()),
+			equationsPart2[9].animate.move_to(vertical_ci[28].get_center()).rotate(PI / 2),
+			ApplyMethod(equationsPart2[11].move_to, vertical_ci[29].get_center()),
+			*[FadeOut(equationsPart2[index]) for index in [0, 2, 4, 6, 8, 10, 12, 13]]
+		)
+
+		self.play(
+			*[FadeIn(vertical_ci[index]) for index in [item for item in range(36) if item not in [6, 13, 20, 27, 35]]],
+			FadeIn(lcm_expression),
+			*[FadeOut(equationsPart2[index]) for index in [1, 3, 5, 7, 9, 11]]
+		)
+		self.wait(14)
+
+		self.play(
+			ApplyMethod(vertical_ci[3].set_color, RED),
+			ApplyMethod(vertical_ci[19].set_color, RED),
+			ApplyMethod(vertical_ci[24].set_color, RED),
+		)
+		self.play(
+			ApplyMethod(vertical_ci[2].set_color, BLACK),
+			ApplyMethod(vertical_ci[3].set_color, BLACK),
+			ApplyMethod(vertical_ci[18].set_color, BLACK),
+			ApplyMethod(vertical_ci[19].set_color, BLACK),
+			ApplyMethod(vertical_ci[23].set_color, BLACK),
+			ApplyMethod(vertical_ci[24].set_color, BLACK),
+			ApplyMethod(vertical_ci[4].move_to, (vertical_ci[2].get_center())),
+			ApplyMethod(vertical_ci[5].move_to, (vertical_ci[3].get_center())),
+			ApplyMethod(vertical_ci[16].move_to, (vertical_ci[16].get_center())),
+			ApplyMethod(vertical_ci[17].move_to, (vertical_ci[17].get_center())),
+			ApplyMethod(vertical_ci[25].move_to, (vertical_ci[23].get_center())),
+			ApplyMethod(vertical_ci[26].move_to, (vertical_ci[24].get_center())),
+		)
+
+		self.wait(9.5)
+		self.play(
+			*[FadeIn(vertical_ci[index]) for index in [6, 13, 20, 27, 35]]
+		)
+
+		self.wait(5)
+
+		inequality = MathTex(
+			r"c_1",  # 0
+			r" + ",  # 1
+			r"c_2",  # 2
+			r" + ",  # 3
+			r"c_3",  # 4
+			r" + ",  # 5
+			r"c_4",  # 6
+			r" + ",  # 7
+			r"\cdots",  # 8
+			r" + ",  # 9
+			r"c_m",  # 10
+			r"\geq",  # 11
+			r"5",  # 12
+			r"^{b_1}",  # 13
+			r" + ",  # 14
+			r"2",  # 15
+			r"^{a_2}",  # 16
+			r" + ",  # 17
+			r"5",  # 18
+			r"^{b_2}",  # 19
+			r" + ",  # 20
+			r"2",  # 21
+			r"^{a_3}",  # 22
+			r" + ",  # 23
+			r"5",  # 24
+			r"^{b_4}",  # 25
+			r" + ",  # 26
+			r"\cdots",  # 27
+			r" + ",  # 28
+			r"2",  # 29
+			r"^{a_m}",  # 30
+			r" + ",  # 31
+			r"5",  # 32
+			r"^{b_m}",  # 33
+		).scale(0.8)
+
+		etc_copy = vertical_ci[28].copy()
+		self.play(
+			Transform(vertical_ci[0], inequality[0]),
+			Transform(vertical_ci[7], inequality[2]),
+			Transform(vertical_ci[14], inequality[4]),
+			Transform(vertical_ci[21], inequality[6]),
+			Transform(vertical_ci[29], inequality[10]),
+
+			Transform(vertical_ci[4], inequality[12]),
+			Transform(vertical_ci[5], inequality[13]),
+
+			Transform(vertical_ci[9], inequality[15]),
+			Transform(vertical_ci[10], inequality[16]),
+
+			Transform(vertical_ci[11], inequality[18]),
+			Transform(vertical_ci[12], inequality[19]),
+
+			Transform(vertical_ci[16], inequality[21]),
+			Transform(vertical_ci[17], inequality[22]),
+
+			Transform(vertical_ci[25], inequality[24]),
+			Transform(vertical_ci[26], inequality[25]),
+
+			Transform(vertical_ci[31], inequality[29]),
+			Transform(vertical_ci[32], inequality[30]),
+
+			Transform(vertical_ci[33], inequality[32]),
+			Transform(vertical_ci[34], inequality[33]),
+
+			Transform(vertical_ci[28], inequality[8]),
+			Transform(etc_copy, inequality[27]),
+
+			*[ApplyMethod(vertical_ci[index].set_color, BLACK) for index in [1, 8, 15, 22, 30, 6, 13, 20, 27, 35]],
+			FadeOut(lcm_expression),
+		)
+		self.play(FadeIn(inequality), FadeOut(vertical_ci))
+
+		grouped = MathTex(
+			r"c_1",  # 0
+			r" + ",  # 1
+			r"c_2",  # 2
+			r" + ",  # 3
+			r"c_3",  # 4
+			r" + ",  # 5
+			r"c_4",  # 6
+			r" + ",  # 7
+			r"\cdots",  # 8
+			r" + ",  # 9
+			r"c_m",  # 10
+			r"\geq",  # 11
+			r"(",  # 12
+			r"2",  # 13
+			r"^{a_2}",  # 14
+			r" + ",  # 15
+			r"2",  # 16
+			r"^{a_3}",  # 17
+			r" + ",  # 18
+			r"\cdots",  # 19
+			r" + ",  # 20
+			r"2",  # 21
+			r"^{a_m}",  # 22
+			r")",  # 23
+			r" + ",  # 24
+			r"(",  # 25
+			r"5",  # 26
+			r"^{b_1}",  # 27
+			r" + ",  # 28
+			r"5",  # 29
+			r"^{b_2}",  # 30
+			r" + ",  # 31
+			r"5",  # 32
+			r"^{b_4}",  # 33
+			r" + ",  # 34
+			r"\cdots",  # 35
+			r" + ",  # 36
+			r"5",  # 37
+			r"^{b_m}",  # 38
+			r")",  # 39
+		).scale(0.7)
+
+		copy_plus = inequality[31].copy()
+		self.add(copy_plus, etc_copy)
+
+		self.play(
+			*[Transform(inequality[index], grouped[index]) for index in range(12)],
+			Transform(inequality[12], grouped[26]),
+			Transform(inequality[13], grouped[27]),
+			Transform(inequality[15], grouped[13]),
+			Transform(inequality[16], grouped[14]),
+			Transform(inequality[18], grouped[29]),
+			Transform(inequality[19], grouped[30]),
+			Transform(inequality[21], grouped[16]),
+			Transform(inequality[22], grouped[17]),
+			Transform(inequality[24], grouped[32]),
+			Transform(inequality[25], grouped[33]),
+			Transform(inequality[29], grouped[21]),
+			Transform(inequality[30], grouped[22]),
+			Transform(inequality[32], grouped[37]),
+			Transform(inequality[33], grouped[38]),
+
+			Transform(inequality[14], grouped[15]),
+			Transform(inequality[17], grouped[18]),
+			Transform(inequality[20], grouped[20]),
+			Transform(inequality[23], grouped[24]),
+			Transform(inequality[26], grouped[28]),
+			Transform(inequality[28], grouped[31]),
+			Transform(inequality[31], grouped[34]),
+			Transform(copy_plus, grouped[36]),
+
+			Transform(inequality[27], grouped[19]),
+			Transform(etc_copy, grouped[35]),
+			*[FadeIn(grouped[index]) for index in [12, 23, 25, 39]]
+		)
 		self.wait()
