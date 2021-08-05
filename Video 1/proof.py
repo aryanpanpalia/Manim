@@ -162,7 +162,6 @@ class Logo(Scene):
 		integral_fade_ins.append(hacking_delay)
 		fade_in_group = AnimationGroup(*integral_fade_ins, lag_ratio=1)
 
-		self.wait()
 		self.play(Write(integrals[0]), run_time=run_time)
 		self.play(
 			Rotate(integrals, angle=np.round(2 * np.pi, 5), run_time=4 * run_time, rate_func=rate_func),
@@ -173,10 +172,9 @@ class Logo(Scene):
 		)
 		self.wait()
 		self.play(
-			FadeOut(integrals),
-			FadeOut(circles),
-			FadeOut(channel_name)
+			FadeOut(circles)
 		)
+		self.play(FadeOut(integrals), FadeOut(channel_name))
 
 
 class WriteQuestionToScreen(Scene):
@@ -1360,6 +1358,8 @@ class Solving(Scene):
 			Transform(final_inequality_clumped[10], step[2]),
 		)
 
+		self.wait(5)
+
 		step = MathTex(
 			r"n",
 			r"\geq",
@@ -1519,7 +1519,7 @@ class ShowingValidPermutation(ZoomedScene, MovingCameraScene):
 
 class Summarize(Scene):
 	def construct(self):
-		summarize = Text("Summary:").shift(UP * 2)
+		summarize = Text("In conclusion:").shift(UP * 2)
 		equation = MathTex(
 			r"\min"
 			r"\{"
