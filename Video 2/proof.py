@@ -87,3 +87,29 @@ class IntoduceProblem(Scene):
 
         self.play(lambd.animate(rate_func=rate_functions.linear).set_value(50), run_time=1)
         self.wait()
+
+
+class IntegrationByParts(Scene):
+    def construct(self):
+        formula = MathTex(
+            "\int", "_", "a", "^", "b", "u(x)", "v'(x)", r"\text{d}x", "=", "u(x)", "v(x)", "\\bigg|", 
+            "_", "a", "^", "b", "-", "\int", "_", "a", "^", "b", "u'(x)", "v(x)", "\\text{d}x"
+        )
+
+        step = MathTex(
+            "\int", "_", "0", "^", "1", "f(x)", "\cos(\lambda x)", r"\text{d}x", "=", "f(x)", "\\frac{\sin(\lambda x)}{\lambda}", "\\bigg|", 
+            "_", "0", "^", "1", "-", "\int", "_", "0", "^", "1", "f'(x)", "\\frac{\sin(\lambda x)}{\lambda}", "\\text{d}x"
+        )
+        
+        self.play(FadeIn(formula))
+        self.wait()
+        self.play(*[Transform(formula[index], step[index]) for index in range(25)])
+        self.wait()
+
+        step = MathTex(
+            "\int", "_", "0", "^", "1", "\cos(\lambda x)", "f(x)", r"\text{d}x", "=", "\cos(\lambda x)", "\int f(x) \\text{d}x", "\\bigg|", 
+            "_", "0", "^", "1", "-", "\int", "_", "0", "^", "1", "-\lambda\sin(\lambda x)", "\int f(x) \\text{d}x", "\\text{d}x"
+        ).scale(0.8)
+
+        self.play(*[Transform(formula[index], step[index]) for index in range(25)])
+        self.wait()
