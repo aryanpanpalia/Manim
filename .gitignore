@@ -116,5 +116,6 @@ dmypy.json
 # Custom
 .idea/
 media/
+audio/
 testing.py
 snippets.py
