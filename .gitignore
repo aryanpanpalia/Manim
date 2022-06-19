@@ -115,8 +115,6 @@ dmypy.json
 
 # Custom
 .idea/
-Tex/
-texts/
-partial_movie_files/
+media/
 testing.py
 snippets.py
